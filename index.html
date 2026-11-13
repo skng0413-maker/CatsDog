@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pet Care</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #E5E7EB;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        /* iPhone 17 Pro Max compact light shell (440px viewport width) */
+        .app-shell {
+            max-width: 440px;
+            width: 100%;
+            height: 100dvh;
+            max-height: 956px;
+            margin: 0 auto;
+            background-color: #F2F2F7;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        @media (min-width: 480px) {
+            .app-shell {
+                height: 95vh;
+                border-radius: 44px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 10px #1F2937;
+            }
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            padding-top: max(12px, env(safe-area-inset-top));
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        input, select {
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div class="app-shell">
+        <!-- 1. TOP HEADER BAR -->
+        <header class="glass-header border-b border-gray-200/80 px-3.5 pb-2.5 z-30 flex-shrink-0">
+            <div class="flex items-center justify-between gap-1.5 mb-2">
+                <!-- Left: Simplified Logo + Sync & Data Status Pill -->
+                <div class="flex items-center gap-2 min-w-0">
+                    <button onclick="switchTab('profile')" class="text-base font-bold text-gray-900 tracking-tight flex items-center gap-1 flex-shrink-0 focus:outline-none">
+                        <span class="text-lg">🐾</span>
+                        <span>Pet Care</span>
+                    </button>
+
+                    <button id="topSyncBtn" onclick="toggleSyncPanel()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 transition active:scale-95 truncate border border-gray-200/70">
+                        <span id="syncDot" class="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"></span>
+                        <span>Sync & Data</span>
+                        <span id="syncBadgeText" class="text-[10px] font-normal text-gray-500 truncate">• Unconfigured</span>
+                    </button>
+                </div>
+
+                <!-- Right: Share All Pets Button -->
+                <button onclick="openShareModal()" title="Share All Pets Data" class="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition active:scale-95 flex-shrink-0">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- 2. PET SELECTOR BAR -->
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <select id="petSelector" onchange="selectPet(this.value)" class="w-full bg-white border border-gray-200/90 text-gray-900 font-semibold text-xs rounded-xl py-2 pl-3 pr-8 appearance-none shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">No pets added yet</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"></i>
+                </div>
+                <button onclick="openAddPetModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1 shadow-xs transition active:scale-95 flex-shrink-0">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Pet</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 3. 3-TAB COMPACT NAVIGATION BAR -->
+        <nav id="mainTabBar" class="bg-white px-3 py-1.5 border-b border-gray-200/70 flex-shrink-0">
+            <div class="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl text-[11px] font-semibold">
+                <button id="nav-profile" onclick="switchTab('profile')" class="py-1.5 px-1 rounded-lg bg-white text-blue-600 shadow-2xs flex items-center justify-center gap-1 transition">
+                    <i data-lucide="id-card" class="w-3.5 h-3.5"></i>
+                    <span>Profile</span>
+                </button>
+                <button id="nav-weight" onclick="switchTab('weight')" class="py-1.5 px-1 rounded-lg text-gray-500 hover:text-gray-900 flex items-center justify-center gap-1 transition">
+                    <i data-lucide="scale" class="w-3.5 h-3.5"></i>
+                    <span>Weight</span>
+                </button>
+                <button id="nav-vax" onclick="switchTab('vax')" class="py-1.5 px-1 rounded-lg text-gray-500 hover:text-gray-900 flex items-center justify-center gap-1 transition">
+                    <i data-lucide="syringe" class="w-3.5 h-3.5"></i>
+                    <span class="truncate">Vax & Deworm</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- SCROLLABLE CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2.5">
+
+            <!-- EMPTY STATE (Zero pre-loaded sample data) -->
+            <div id="emptyStateBox" class="bg-white rounded-2xl p-6 text-center border border-gray-200/70 shadow-2xs space-y-2.5 mt-2">
+                <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-2xl">🐾</div>
+                <h2 class="text-sm font-bold text-gray-900">Welcome to Pet Care</h2>
+                <p class="text-xs text-gray-500 leading-relaxed">No pets added yet. Tap <span class="font-semibold text-blue-600">+ Pet</span> above to create your first pet profile, or tap <span class="font-semibold text-gray-700">Sync & Data</span> beside the logo to pull your cloud backup.</p>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- TAB 1: PROFILE                             -->
+            <!-- ========================================== -->
+            <section id="tab-profile" class="hidden space-y-2.5">
+                <div class="bg-white rounded-2xl p-3 border border-gray-200/70 shadow-2xs space-y-2.5">
+                    <!-- Section Header with Edit / Save / Delete Buttons -->
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Pet Profile</span>
+                        <div class="flex items-center gap-2">
+                            <button id="btnDeletePet" onclick="confirmDeletePet()" class="hidden text-xs font-semibold text-red-500 hover:bg-red-50 px-2 py-1 rounded-lg transition flex items-center gap-1" title="Delete Pet">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button id="btnEditProfile" onclick="enterProfileEdit()" class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i data-lucide="pencil" class="w-3 h-3"></i>
+                                <span>Edit</span>
+                            </button>
+                            <button id="btnSaveProfile" onclick="saveProfile()" class="hidden text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-2xs">
+                                <i data-lucide="check" class="w-3 h-3"></i>
+                                <span>Save</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SINGLE UNIFIED NAME + SPECIES + STATUS ROW -->
+                    <div class="space-y-1">
+                        <label class="block text-[9px] font-bold uppercase text-gray-400">Name</label>
+                        <div class="flex items-center justify-between gap-2 min-h-[30px]">
+                            <!-- View Mode: Bold Text + Static Pills -->
+                            <div id="nameViewRow" class="flex items-center justify-between gap-2 w-full">
+                                <span id="pNameDisplay" class="font-bold text-lg text-gray-900 truncate">Unnamed</span>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <span id="badgeSpecies" class="inline-flex items-center gap-1 text-[11px] font-medium bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full">🐱 Cat</span>
+                                    <span id="badgeStatus" class="inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full">💚 Live</span>
+                                </div>
+                            </div>
+
+                            <!-- Edit Mode: Inline Input + Interactive Pill Dropdowns -->
+                            <div id="nameEditRow" class="hidden flex items-center justify-between gap-2 w-full">
+                                <input type="text" id="pName" placeholder="Pet Name" oninput="syncLiveProfileField('name', this.value)" class="flex-1 min-w-0 font-bold text-lg text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-2 py-0.5 focus:bg-white focus:border-blue-500 focus:outline-none">
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <select id="pSpecies" onchange="syncLiveProfileField('species', this.value); syncProfileBadges();" aria-label="Species" class="text-[11px] font-medium bg-gray-100 text-gray-700 px-2 py-1 rounded-full ring-1 ring-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                                        <option value="Cat">🐱 Cat</option>
+                                        <option value="Dog">🐶 Dog</option>
+                                    </select>
+                                    <select id="pStatus" onchange="syncLiveProfileField('status', this.value); handleStatusChange();" aria-label="Status" class="text-[11px] font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full ring-1 ring-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                                        <option value="Live">💚 Live</option>
+                                        <option value="Deceased">🕊️ Deceased</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compact Form Grid -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <!-- Breed Dropdown + Free Entry -->
+                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100 col-span-2">
+                            <label class="block text-[9px] font-bold uppercase text-gray-400 mb-0.5">Breed</label>
+                            <div id="breedViewRow" class="font-semibold text-gray-800 text-xs">Munchkin</div>
+                            <div id="breedEditRow" class="hidden flex gap-2 items-center">
+                                <select id="pBreedSelect" onchange="syncLiveProfileField('breedSelect', this.value); handleBreedChange();" class="bg-white border border-gray-200 rounded-lg px-2 py-1 font-semibold text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 flex-1">
+                                    <option value="Munchkin">Munchkin</option>
+                                    <option value="Ragdoll">Ragdoll</option>
+                                    <option value="Napoleon">Napoleon</option>
+                                    <option value="Teacup Poodle">Teacup Poodle</option>
+                                    <option value="Custom">Other / Custom...</option>
+                                </select>
+                                <input type="text" id="pBreedCustom" placeholder="Type custom breed..." oninput="syncLiveProfileField('breedCustom', this.value)" class="hidden flex-1 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                            <label class="block text-[9px] font-bold uppercase text-gray-400 mb-0.5">Date of Birth</label>
+                            <div class="flex items-center gap-1">
+                                <input type="text" id="pDob" readonly maxlength="10" placeholder="dd/mm/yyyy" oninput="formatDateInput(this); syncLiveProfileField('dob', this.value); recalculateAges();" class="w-full bg-transparent font-semibold text-gray-800 focus:outline-none">
+                                <input type="date" id="pDobPicker" disabled onchange="syncNativeDateToText(this, 'pDob'); recalculateAges();" class="w-5 h-5 opacity-60 cursor-pointer disabled:hidden">
+                            </div>
+                        </div>
+
+                        <!-- Current Age (Shown ONLY when Live) -->
+                        <div id="boxCurrentAge" class="bg-blue-50/70 p-2 rounded-xl border border-blue-100">
+                            <label class="block text-[9px] font-bold uppercase text-blue-600 mb-0.5">Current Age</label>
+                            <span id="pCurrentAge" class="font-bold text-blue-700 text-xs">--</span>
+                        </div>
+
+                        <!-- Date of Death & Age at Death (Shown ONLY when Deceased; Current Age hidden) -->
+                        <div id="boxDateOfDeath" class="hidden bg-red-50/80 p-2 rounded-xl border border-red-100">
+                            <label class="block text-[9px] font-bold uppercase text-red-500 mb-0.5">Date of Death</label>
+                            <div class="flex items-center gap-1">
+                                <input type="text" id="pDod" readonly maxlength="10" placeholder="dd/mm/yyyy" oninput="formatDateInput(this); syncLiveProfileField('dod', this.value); recalculateAges();" class="w-full bg-transparent font-semibold text-red-700 focus:outline-none">
+                                <input type="date" id="pDodPicker" disabled onchange="syncNativeDateToText(this, 'pDod'); recalculateAges();" class="w-5 h-5 opacity-60 cursor-pointer disabled:hidden">
+                            </div>
+                        </div>
+
+                        <div id="boxAgeAtDeath" class="hidden bg-red-50/80 p-2 rounded-xl border border-red-100 col-span-2">
+                            <label class="block text-[9px] font-bold uppercase text-red-500 mb-0.5">Age at Death</label>
+                            <span id="pAgeAtDeath" class="font-bold text-red-700 text-xs">--</span>
+                        </div>
+
+                        <!-- Date of Adoption -->
+                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                            <label class="block text-[9px] font-bold uppercase text-gray-400 mb-0.5">Date of Adoption</label>
+                            <div class="flex items-center gap-1">
+                                <input type="text" id="pDoa" readonly maxlength="10" placeholder="dd/mm/yyyy" oninput="formatDateInput(this); syncLiveProfileField('doa', this.value); recalculateAges();" class="w-full bg-transparent font-semibold text-gray-800 focus:outline-none">
+                                <input type="date" id="pDoaPicker" disabled onchange="syncNativeDateToText(this, 'pDoa'); recalculateAges();" class="w-5 h-5 opacity-60 cursor-pointer disabled:hidden">
+                            </div>
+                        </div>
+
+                        <!-- Age at Adoption -->
+                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                            <label class="block text-[9px] font-bold uppercase text-gray-400 mb-0.5">Age at Adoption</label>
+                            <span id="pAgeAdoption" class="font-semibold text-gray-700 text-xs">--</span>
+                        </div>
+
+                        <!-- Adoption Fee (HKD) -->
+                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                            <label class="block text-[9px] font-bold uppercase text-gray-400 mb-0.5">Adoption Fee (HKD)</label>
+                            <input type="number" step="0.01" id="pFee" readonly placeholder="0.00" oninput="syncLiveProfileField('fee', this.value)" class="w-full bg-transparent font-semibold text-gray-800 focus:outline-none">
+                        </div>
+
+                        <!-- AVID / Microchip Number -->
+                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                            <label class="block text-[9px] font-bold uppercase text-gray-400 mb-0.5">AVID / Microchip #</label>
+                            <input type="text" id="pAvid" readonly placeholder="Enter ID" oninput="syncLiveProfileField('avid', this.value)" class="w-full bg-transparent font-semibold text-gray-800 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 2: WEIGHT & PROPORTIONAL GROWTH CURVE  -->
+            <!-- ========================================== -->
+            <section id="tab-weight" class="hidden space-y-2.5">
+                <div class="bg-white rounded-2xl p-3 border border-gray-200/70 shadow-2xs space-y-2.5">
+                    <!-- Header with Independent Edit / Save Buttons -->
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Weight & Growth</span>
+                            <span class="text-[9px] font-semibold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Proportional X-Axis</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btnEditWeight" onclick="setWeightEditMode(true)" class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <i data-lucide="pencil" class="w-3 h-3"></i>
+                                <span>Edit</span>
+                            </button>
+                            <button id="btnSaveWeight" onclick="setWeightEditMode(false)" class="hidden text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-2xs">
+                                <i data-lucide="check" class="w-3 h-3"></i>
+                                <span>Save</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Proportional Growth Curve Canvas -->
+                    <div class="bg-gray-50/90 rounded-xl p-2 border border-gray-100">
+                        <canvas id="growthCanvas" class="w-full h-44 block"></canvas>
+                    </div>
+
+                    <!-- Add Weight Entry Form (Shown in Edit Mode) -->
+                    <form id="formAddWeight" onsubmit="addWeightEntry(event)" class="hidden bg-blue-50/50 p-2 rounded-xl border border-blue-100 space-y-1.5">
+                        <div class="flex gap-1.5 items-center">
+                            <div class="flex-1 flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1">
+                                <input type="text" id="inWeightDate" maxlength="10" placeholder="dd/mm/yyyy" required oninput="formatDateInput(this)" class="w-full text-xs focus:outline-none">
+                                <input type="date" onchange="syncNativeDateToText(this, 'inWeightDate')" class="w-4 h-4 opacity-60 cursor-pointer">
+                            </div>
+                            <input type="number" step="0.01" min="0" id="inWeightKg" placeholder="Weight (kg)" required class="w-28 bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 transition">
+                                + Add
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Chronological Weight Table -->
+                    <div class="max-h-48 overflow-y-auto no-scrollbar border border-gray-100 rounded-xl">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold sticky top-0">
+                                <tr>
+                                    <th class="py-1.5 px-2.5">Date</th>
+                                    <th class="py-1.5 px-2.5">Weight (kg)</th>
+                                    <th class="py-1.5 px-2.5 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weightListBody" class="divide-y divide-gray-100 text-gray-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 3: VACCINATION & DEWORMING             -->
+            <!-- ========================================== -->
+            <section id="tab-vax" class="hidden space-y-2.5">
+                <!-- Shared Header with Edit / Save Buttons -->
+                <div class="bg-white rounded-2xl px-3 py-2 border border-gray-200/70 shadow-2xs flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Vaccination & Deworming</span>
+                    <div class="flex items-center gap-2">
+                        <button id="btnEditVax" onclick="setVaxEditMode(true)" class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                            <i data-lucide="pencil" class="w-3 h-3"></i>
+                            <span>Edit</span>
+                        </button>
+                        <button id="btnSaveVax" onclick="setVaxEditMode(false)" class="hidden text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-2xs">
+                            <i data-lucide="check" class="w-3 h-3"></i>
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 1: Vaccination Record -->
+                <div class="bg-white rounded-2xl p-3 border border-gray-200/70 shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-1.5">
+                        <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                            <i data-lucide="syringe" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>Vaccination Record</span>
+                        </span>
+                        <span class="text-[10px] text-gray-400">Auto-sorted</span>
+                    </div>
+
+                    <!-- Add Vaccination Form (Shown in Edit Mode) -->
+                    <form id="formAddVaccine" onsubmit="addVaccineEntry(event)" class="hidden bg-emerald-50/50 p-2 rounded-xl border border-emerald-100 space-y-1.5 text-xs">
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <div class="flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1">
+                                <input type="text" id="inVaxDate" maxlength="10" placeholder="dd/mm/yyyy" required oninput="formatDateInput(this)" class="w-full text-xs focus:outline-none">
+                                <input type="date" onchange="syncNativeDateToText(this, 'inVaxDate')" class="w-4 h-4 opacity-60 cursor-pointer">
+                            </div>
+                            <select id="inVaxNameSelect" onchange="toggleFreeText('inVaxNameSelect', 'inVaxNameCustom')" class="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none">
+                                <option value="Feligen">Feligen</option>
+                                <option value="FRCP">FRCP</option>
+                                <option value="妙三多">妙三多</option>
+                                <option value="瑞喵舒">瑞喵舒</option>
+                                <option value="Vanguard plus">Vanguard plus</option>
+                                <option value="Leptoferm C1">Leptoferm C1</option>
+                                <option value="Custom">Other / Custom...</option>
+                            </select>
+                        </div>
+                        <input type="text" id="inVaxNameCustom" placeholder="Enter custom vaccine name..." class="hidden w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none">
+
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <select id="inVaxPlaceSelect" onchange="toggleFreeText('inVaxPlaceSelect', 'inVaxPlaceCustom')" class="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none">
+                                <option value="CH">CH</option>
+                                <option value="東方">東方</option>
+                                <option value="Jack's">Jack's</option>
+                                <option value="Custom">Other / Custom...</option>
+                            </select>
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg py-1 px-2 transition">
+                                + Add Vaccine
+                            </button>
+                        </div>
+                        <input type="text" id="inVaxPlaceCustom" placeholder="Enter custom place..." class="hidden w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none">
+                    </form>
+
+                    <div class="max-h-36 overflow-y-auto no-scrollbar border border-gray-100 rounded-xl">
+                        <table class="w-full text-left text-[11px]">
+                            <thead class="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold sticky top-0">
+                                <tr>
+                                    <th class="py-1.5 px-2">Date</th>
+                                    <th class="py-1.5 px-2">Vaccine</th>
+                                    <th class="py-1.5 px-2">Place</th>
+                                    <th class="py-1.5 px-2 text-right"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="vaccineListBody" class="divide-y divide-gray-100 text-gray-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Card 2: Deworming Record -->
+                <div class="bg-white rounded-2xl p-3 border border-gray-200/70 shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-1.5">
+                        <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                            <i data-lucide="pill" class="w-3.5 h-3.5 text-amber-500"></i>
+                            <span>Deworming Record</span>
+                        </span>
+                        <span class="text-[10px] text-gray-400">Auto-sorted</span>
+                    </div>
+
+                    <!-- Add Deworming Form (Shown in Edit Mode) -->
+                    <form id="formAddDeworm" onsubmit="addDewormEntry(event)" class="hidden bg-amber-50/50 p-2 rounded-xl border border-amber-100 space-y-1.5 text-xs">
+                        <div class="flex gap-1.5">
+                            <div class="w-32 flex items-center bg-white border border-gray-200 rounded-lg px-2 py-1 flex-shrink-0">
+                                <input type="text" id="inDewormDate" maxlength="10" placeholder="dd/mm/yyyy" required oninput="formatDateInput(this)" class="w-full text-xs focus:outline-none">
+                                <input type="date" onchange="syncNativeDateToText(this, 'inDewormDate')" class="w-4 h-4 opacity-60 cursor-pointer">
+                            </div>
+                            <input type="text" id="inDewormName" list="dewormSuggestions" placeholder="Medication or note..." required class="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none">
+                            <datalist id="dewormSuggestions">
+                                <option value="Revolution Plus">
+                                <option value="Bravecto">
+                                <option value="NexGard Spectra">
+                                <option value="Milbemax">
+                                <option value="Drontal">
+                                <option value="Advocate">
+                                <option value="Heartgard Plus">
+                            </datalist>
+                        </div>
+                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg py-1.5 transition">
+                            + Add Deworming
+                        </button>
+                    </form>
+
+                    <div class="max-h-36 overflow-y-auto no-scrollbar border border-gray-100 rounded-xl">
+                        <table class="w-full text-left text-[11px]">
+                            <thead class="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold sticky top-0">
+                                <tr>
+                                    <th class="py-1.5 px-2">Date</th>
+                                    <th class="py-1.5 px-2">Deworming</th>
+                                    <th class="py-1.5 px-2 text-right"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="dewormListBody" class="divide-y divide-gray-100 text-gray-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- SYNC & DATA PANEL (Toggled by top pill)    -->
+            <!-- ========================================== -->
+            <section id="tab-sync" class="hidden space-y-2.5">
+                <!-- GitHub Gist Cloud Sync -->
+                <div class="bg-white rounded-2xl p-3.5 border border-gray-200/70 shadow-2xs space-y-2.5">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <span class="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                            <i data-lucide="github" class="w-4 h-4"></i>
+                            <span>GitHub Gist Cloud Sync</span>
+                        </span>
+                        <button onclick="closeSyncPanel()" class="text-xs font-semibold text-blue-600 hover:underline">Close</button>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-0.5">GitHub Personal Access Token (PAT)</label>
+                            <input type="password" id="cfgPat" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-0.5">Gist ID (Optional — auto-created if blank)</label>
+                            <input type="text" id="cfgGistId" placeholder="Auto-generated on first Push if blank" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <label class="flex items-center justify-between pt-0.5 cursor-pointer">
+                            <span class="font-semibold text-gray-700">Auto-Sync on changes</span>
+                            <input type="checkbox" id="cfgAutoSync" class="w-4 h-4 accent-blue-600 rounded">
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="pullCloudGist()" class="py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="cloud-download" class="w-3.5 h-3.5"></i>
+                            <span>Pull Cloud</span>
+                        </button>
+                        <button onclick="pushCloudGist(false)" class="py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i>
+                            <span>Push Cloud</span>
+                        </button>
+                    </div>
+
+                    <button onclick="saveCloudConfig()" class="w-full py-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl text-xs transition active:scale-95">
+                        Save Configuration
+                    </button>
+
+                    <div class="flex items-center justify-between pt-1 text-[10px] text-gray-400">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="database" class="w-3 h-3 text-emerald-600"></i>
+                            <span>IndexedDB Storage (PetCareDB)</span>
+                        </span>
+                        <span id="storageUsageText">0 KB used</span>
+                    </div>
+                </div>
+
+                <!-- Local JSON Backup & Import -->
+                <div class="bg-white rounded-2xl p-3.5 border border-gray-200/70 shadow-2xs space-y-2.5">
+                    <span class="text-xs font-bold text-gray-900 flex items-center gap-1.5 border-b border-gray-100 pb-2">
+                        <i data-lucide="hard-drive" class="w-4 h-4 text-gray-500"></i>
+                        <span>Local Backup & Import</span>
+                    </span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="exportJsonFile()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            <span>Export JSON</span>
+                        </button>
+                        <button onclick="triggerImportJson()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            <span>Import JSON</span>
+                        </button>
+                        <input type="file" id="jsonImportInput" accept=".json,application/json" class="hidden" onchange="handleImportJson(event)">
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- MODAL: ADD NEW PET -->
+        <div id="modalAddPet" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-4 w-full max-w-xs space-y-3 shadow-xl">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <h3 class="font-bold text-sm text-gray-900">Add New Pet</h3>
+                    <button onclick="closeAddPetModal()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Pet Name</label>
+                        <input type="text" id="newPetName" placeholder="e.g. Mochi" class="w-full border border-gray-200 rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-semibold text-gray-600 mb-1">Species</label>
+                            <select id="newPetSpecies" class="w-full border border-gray-200 rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <option value="Cat">🐱 Cat</option>
+                                <option value="Dog">🐶 Dog</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-gray-600 mb-1">Status</label>
+                            <select id="newPetStatus" class="w-full border border-gray-200 rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <option value="Live">💚 Live</option>
+                                <option value="Deceased">🕊️ Deceased</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="closeAddPetModal()" class="flex-1 py-2 bg-gray-100 text-gray-700 font-semibold rounded-xl text-xs">Cancel</button>
+                    <button onclick="createNewPet()" class="flex-1 py-2 bg-blue-600 text-white font-semibold rounded-xl text-xs hover:bg-blue-700">Create</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: CONFIRM DELETE PET -->
+        <div id="modalDeletePet" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-4 w-full max-w-xs space-y-3 shadow-xl text-center">
+                <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-bold text-sm text-gray-900">Delete Pet Profile?</h3>
+                <p id="deletePetMsg" class="text-xs text-gray-500">This will permanently remove this pet and all its records.</p>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="closeDeleteModal()" class="flex-1 py-2 bg-gray-100 text-gray-700 font-semibold rounded-xl text-xs">Cancel</button>
+                    <button onclick="executeDeletePet()" class="flex-1 py-2 bg-red-600 text-white font-semibold rounded-xl text-xs hover:bg-red-700">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: SHARE ALL PETS DATA -->
+        <div id="modalShare" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-4 w-full max-w-xs space-y-3 shadow-xl">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <h3 class="font-bold text-sm text-gray-900">Share All Pets Data</h3>
+                    <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p class="text-[11px] text-gray-500">Share complete profiles, weight logs, vaccinations, and deworming records for all pets:</p>
+                <div class="space-y-2 text-xs font-semibold">
+                    <button onclick="shareWhatsApp()" class="w-full py-2.5 bg-[#25D366] text-white rounded-xl flex items-center justify-center gap-2 hover:opacity-95 transition">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        <span>Share via WhatsApp</span>
+                    </button>
+                    <button onclick="shareEmail()" class="w-full py-2.5 bg-blue-600 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                        <span>Share via Email</span>
+                    </button>
+                    <button onclick="copySummaryClipboard()" class="w-full py-2.5 bg-gray-100 text-gray-800 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span>Copy to Clipboard</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST NOTIFICATION -->
+        <div id="toastBanner" class="pointer-events-none fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900/95 text-white text-xs font-medium px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity duration-200 z-50 text-center max-w-[340px]">
+            Message
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // INDEXEDDB STORAGE ("PetCareDB" / "pets")
+        // ==========================================
+        const IDB_NAME = 'PetCareDB';
+        const IDB_VERSION = 2;
+        const IDB_STORE = 'pets';
+        const IDB_PETS_KEY = 'all_pets';
+
+        const LEGACY_PETS_KEYS = ['pet_care_v3_pets', 'pet_care_v2_pets', 'pets', 'pets_records'];
+        const STORAGE_KEY_CLOUD = 'pet_care_v3_cloud';
+
+        let pets = [];
+        let activePetId = null;
+        let activeMainTab = 'profile';
+        let isSyncOpen = false;
+
+        let editState = {
+            profile: false,
+            weight: false,
+            vax: false
+        };
+
+        let cloudCfg = {
+            pat: '',
+            gistId: '',
+            autoSync: false,
+            lastSync: null
+        };
+
+        let autoSyncTimer = null;
+
+        function openPetCareDB() {
+            return new Promise((resolve, reject) => {
+                if (!window.indexedDB) {
+                    reject(new Error('IndexedDB not supported'));
+                    return;
+                }
+                const request = indexedDB.open(IDB_NAME, IDB_VERSION);
+                request.onupgradeneeded = function (event) {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE);
+                    }
+                };
+                request.onsuccess = function (event) {
+                    resolve(event.target.result);
+                };
+                request.onerror = function (event) {
+                    reject(event.target.error || new Error('Failed to open IndexedDB'));
+                };
+            });
+        }
+
+        async function idbGet(key) {
+            const db = await openPetCareDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(IDB_STORE, 'readonly');
+                const store = tx.objectStore(IDB_STORE);
+                const req = store.get(key);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function idbSet(key, val) {
+            const db = await openPetCareDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(IDB_STORE, 'readwrite');
+                const store = tx.objectStore(IDB_STORE);
+                const req = store.put(val, key);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function sanitizePetRecord(raw) {
+            if (!raw || typeof raw !== 'object') raw = {};
+            const knownBreeds = ['Munchkin', 'Ragdoll', 'Napoleon', 'Teacup Poodle'];
+
+            let breedSelect = raw.breedSelect || '';
+            let breedCustom = raw.breedCustom || '';
+
+            if (!breedSelect && typeof raw.breed === 'string' && raw.breed.trim()) {
+                if (knownBreeds.includes(raw.breed.trim())) {
+                    breedSelect = raw.breed.trim();
+                } else {
+                    breedSelect = 'Custom';
+                    breedCustom = raw.breed.trim();
+                }
+            }
+            if (!breedSelect) breedSelect = 'Munchkin';
+
+            const resolvedBreed = breedSelect === 'Custom'
+                ? (String(breedCustom || '').trim() || 'Custom')
+                : breedSelect;
+
+            // Normalize weights array
+            const rawWeights = Array.isArray(raw.weights) ? raw.weights : [];
+            const weights = rawWeights.map((w, idx) => ({
+                id: w.id || ('w_' + Date.now() + '_' + idx),
+                date: String(w.date || '').trim(),
+                weight: Number(w.weight ?? w.kg ?? 0)
+            })).filter(w => w.date && !isNaN(w.weight) && w.weight > 0);
+
+            // Normalize vaccinations array (supports both "vaccines" and "vaccinations")
+            const rawVax = Array.isArray(raw.vaccines)
+                ? raw.vaccines
+                : (Array.isArray(raw.vaccinations) ? raw.vaccinations : []);
+            const vaccines = rawVax.map((v, idx) => ({
+                id: v.id || ('v_' + Date.now() + '_' + idx),
+                date: String(v.date || '').trim(),
+                name: String(v.name || v.vaccine || '').trim(),
+                place: String(v.place || v.clinic || '').trim()
+            })).filter(v => v.date && v.name);
+
+            // Normalize dewormings array
+            const rawDeworm = Array.isArray(raw.dewormings) ? raw.dewormings : [];
+            const dewormings = rawDeworm.map((d, idx) => ({
+                id: d.id || ('d_' + Date.now() + '_' + idx),
+                date: String(d.date || '').trim(),
+                name: String(d.name || d.medication || d.note || '').trim()
+            })).filter(d => d.date && d.name);
+
+            const adoptionDate = String(raw.doa ?? raw.adoptionDate ?? '').trim();
+            const adoptionFee = raw.fee !== undefined && raw.fee !== null && raw.fee !== ''
+                ? String(raw.fee)
+                : (raw.adoptionFee !== undefined && raw.adoptionFee !== null ? String(raw.adoptionFee) : '');
+            const avidNumber = String(raw.avid ?? raw.microchip ?? '').trim();
+
+            return {
+                id: raw.id || ('pet_' + Date.now() + Math.random().toString(36).slice(2, 6)),
+                name: String(raw.name || '').trim(),
+                species: raw.species === 'Dog' ? 'Dog' : 'Cat',
+                breed: resolvedBreed,
+                breedSelect,
+                breedCustom: String(breedCustom || '').trim(),
+                status: raw.status === 'Deceased' ? 'Deceased' : 'Live',
+                dob: String(raw.dob || '').trim(),
+                dod: String(raw.dod || '').trim(),
+                doa: adoptionDate,
+                adoptionDate: adoptionDate,
+                fee: adoptionFee,
+                adoptionFee: adoptionFee,
+                avid: avidNumber,
+                microchip: avidNumber,
+                weights,
+                vaccines,
+                vaccinations: vaccines,
+                dewormings
+            };
+        }
+
+        // Flush any active edit mode so unsaved inputs are committed before switching tabs or syncing
+        async function flushPendingEdits(silent = true) {
+            if (editState.profile) {
+                await saveProfile(silent);
+            }
+            if (editState.weight) {
+                await setWeightEditMode(false, silent);
+            }
+            if (editState.vax) {
+                await setVaxEditMode(false, silent);
+            }
+        }
+
+        async function initPetsStorage() {
+            try {
+                let storedPets = await idbGet(IDB_PETS_KEY);
+
+                for (const legacyKey of LEGACY_PETS_KEYS) {
+                    const rawLegacy = localStorage.getItem(legacyKey);
+                    if (rawLegacy) {
+                        try {
+                            const parsedLegacy = JSON.parse(rawLegacy);
+                            if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0 && (!Array.isArray(storedPets) || storedPets.length === 0)) {
+                                storedPets = parsedLegacy;
+                            }
+                        } catch (parseErr) {}
+                        localStorage.removeItem(legacyKey);
+                    }
+                }
+
+                if (Array.isArray(storedPets)) {
+                    pets = storedPets.map(sanitizePetRecord);
+                    await idbSet(IDB_PETS_KEY, pets);
+                } else {
+                    pets = [];
+                }
+            } catch (err) {
+                console.error('IndexedDB init error:', err);
+                pets = [];
+            }
+            updateStorageUsageDisplay();
+        }
+
+        async function persistPets() {
+            try {
+                pets = pets.map(sanitizePetRecord);
+                await idbSet(IDB_PETS_KEY, pets);
+                updateStorageUsageDisplay();
+            } catch (err) {
+                showToast('Database save error: ' + err.message);
+            }
+
+            if (cloudCfg.autoSync && cloudCfg.pat) {
+                clearTimeout(autoSyncTimer);
+                autoSyncTimer = setTimeout(() => {
+                    pushCloudGist(true);
+                }, 1200);
+            }
+        }
+
+        function updateStorageUsageDisplay() {
+            const el = document.getElementById('storageUsageText');
+            if (!el) return;
+            try {
+                const bytes = new Blob([JSON.stringify(pets)]).size;
+                if (bytes >= 1024 * 1024) {
+                    el.textContent = `${(bytes / (1024 * 1024)).toFixed(2)} MB used`;
+                } else {
+                    el.textContent = `${Math.max(1, Math.round(bytes / 1024))} KB used`;
+                }
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // APP INITIALIZATION
+        // ==========================================
+        window.onload = async function () {
+            lucide.createIcons();
+            loadCloudFromLocal();
+            await initPetsStorage();
+
+            if (pets.length > 0 && !activePetId) {
+                activePetId = pets[0].id;
+            }
+
+            renderPetDropdown();
+            refreshUI();
+            updateSyncStatusBadge('idle');
+
+            window.addEventListener('resize', () => {
+                if (!isSyncOpen && activeMainTab === 'weight') {
+                    drawProportionalGrowthCurve();
+                }
+            });
+
+            window.addEventListener('online', () => updateSyncStatusBadge('idle'));
+            window.addEventListener('offline', () => updateSyncStatusBadge('offline'));
+        };
+
+        function loadCloudFromLocal() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_CLOUD);
+                if (raw) {
+                    cloudCfg = Object.assign(cloudCfg, JSON.parse(raw));
+                    document.getElementById('cfgPat').value = cloudCfg.pat || '';
+                    document.getElementById('cfgGistId').value = cloudCfg.gistId || '';
+                    document.getElementById('cfgAutoSync').checked = !!cloudCfg.autoSync;
+                }
+            } catch (e) {}
+        }
+
+        function saveCloudConfig() {
+            cloudCfg.pat = document.getElementById('cfgPat').value.trim();
+            cloudCfg.gistId = document.getElementById('cfgGistId').value.trim();
+            cloudCfg.autoSync = document.getElementById('cfgAutoSync').checked;
+            try {
+                localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify(cloudCfg));
+            } catch (e) {}
+            updateSyncStatusBadge('idle');
+            showToast('Cloud configuration saved!');
+        }
+
+        // ==========================================
+        // DATE PARSING & AGE CALCULATION (dd/mm/yyyy)
+        // ==========================================
+        function parseDDMMYYYY(str) {
+            if (!str || typeof str !== 'string') return null;
+            const parts = str.trim().split('/');
+            if (parts.length !== 3) return null;
+            const d = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            const y = parseInt(parts[2], 10);
+            if (isNaN(d) || isNaN(m) || isNaN(y) || y < 1900 || m < 1 || m > 12 || d < 1 || d > 31) {
+                return null;
+            }
+            const dt = new Date(y, m - 1, d);
+            if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) {
+                return null;
+            }
+            return dt;
+        }
+
+        function formatDateInput(el) {
+            let v = el.value.replace(/\D/g, '').slice(0, 8);
+            if (v.length >= 5) {
+                el.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+            } else if (v.length >= 3) {
+                el.value = `${v.slice(0, 2)}/${v.slice(2)}`;
+            } else {
+                el.value = v;
+            }
+        }
+
+        function syncNativeDateToText(pickerEl, targetInputId) {
+            if (!pickerEl.value) return;
+            const [y, m, d] = pickerEl.value.split('-');
+            const target = document.getElementById(targetInputId);
+            target.value = `${d}/${m}/${y}`;
+            target.dispatchEvent(new Event('input'));
+        }
+
+        function computeDetailedAge(fromStr, toStr = null) {
+            const start = parseDDMMYYYY(fromStr);
+            if (!start) return '--';
+            const end = toStr ? parseDDMMYYYY(toStr) : new Date();
+            if (!end) return '--';
+
+            const endClean = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            if (endClean < start) return '0y 0m 0d';
+
+            let years = endClean.getFullYear() - start.getFullYear();
+            let months = endClean.getMonth() - start.getMonth();
+            let days = endClean.getDate() - start.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonthDays = new Date(endClean.getFullYear(), endClean.getMonth(), 0).getDate();
+                days += prevMonthDays;
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            return `${years}y ${months}m ${days}d`;
+        }
+
+        function sortEntriesChronologically(list) {
+            return list.sort((a, b) => {
+                const da = parseDDMMYYYY(a.date);
+                const db = parseDDMMYYYY(b.date);
+                const ta = da ? da.getTime() : 0;
+                const tb = db ? db.getTime() : 0;
+                return ta - tb;
+            });
+        }
+
+        // ==========================================
+        // NAVIGATION & VIEW SWITCHING
+        // ==========================================
+        async function switchTab(tabName) {
+            await flushPendingEdits(true);
+            isSyncOpen = false;
+            activeMainTab = tabName;
+            document.getElementById('tab-sync').classList.add('hidden');
+            document.getElementById('mainTabBar').classList.remove('hidden');
+
+            const topBtn = document.getElementById('topSyncBtn');
+            topBtn.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+            topBtn.classList.add('bg-gray-100');
+
+            ['profile', 'weight', 'vax'].forEach(t => {
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (t === tabName) {
+                    navBtn.className = 'py-1.5 px-1 rounded-lg bg-white text-blue-600 shadow-2xs flex items-center justify-center gap-1 transition font-bold';
+                } else {
+                    navBtn.className = 'py-1.5 px-1 rounded-lg text-gray-500 hover:text-gray-900 flex items-center justify-center gap-1 transition font-semibold';
+                }
+            });
+
+            refreshUI();
+        }
+
+        async function toggleSyncPanel() {
+            if (isSyncOpen) {
+                await closeSyncPanel();
+            } else {
+                await flushPendingEdits(true);
+                isSyncOpen = true;
+                updateStorageUsageDisplay();
+                document.getElementById('emptyStateBox').classList.add('hidden');
+                document.getElementById('tab-profile').classList.add('hidden');
+                document.getElementById('tab-weight').classList.add('hidden');
+                document.getElementById('tab-vax').classList.add('hidden');
+                document.getElementById('tab-sync').classList.remove('hidden');
+
+                const topBtn = document.getElementById('topSyncBtn');
+                topBtn.classList.remove('bg-gray-100');
+                topBtn.classList.add('bg-blue-50', 'ring-2', 'ring-blue-500');
+            }
+        }
+
+        async function closeSyncPanel() {
+            await switchTab(activeMainTab);
+        }
+
+        function refreshUI() {
+            if (isSyncOpen) return;
+
+            const pet = getActivePet();
+            const emptyBox = document.getElementById('emptyStateBox');
+            const secProfile = document.getElementById('tab-profile');
+            const secWeight = document.getElementById('tab-weight');
+            const secVax = document.getElementById('tab-vax');
+
+            secProfile.classList.add('hidden');
+            secWeight.classList.add('hidden');
+            secVax.classList.add('hidden');
+
+            if (!pet) {
+                emptyBox.classList.remove('hidden');
+                return;
+            }
+
+            emptyBox.classList.add('hidden');
+
+            if (activeMainTab === 'profile') {
+                secProfile.classList.remove('hidden');
+                populateProfileFields(pet);
+            } else if (activeMainTab === 'weight') {
+                secWeight.classList.remove('hidden');
+                renderWeightTable(pet);
+                setTimeout(drawProportionalGrowthCurve, 20);
+            } else if (activeMainTab === 'vax') {
+                secVax.classList.remove('hidden');
+                renderVaccineTable(pet);
+                renderDewormTable(pet);
+            }
+        }
+
+        // ==========================================
+        // PET CRUD & DROPDOWN
+        // ==========================================
+        function getActivePet() {
+            return pets.find(p => p.id === activePetId) || null;
+        }
+
+        function renderPetDropdown() {
+            const sel = document.getElementById('petSelector');
+            sel.innerHTML = '';
+
+            if (pets.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'No pets added yet';
+                sel.appendChild(opt);
+                return;
+            }
+
+            pets.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                const stIcon = p.status === 'Deceased' ? '🕊️' : '💚';
+                opt.textContent = `${p.name || 'Unnamed'} (${stIcon} ${p.status})`;
+                if (p.id === activePetId) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        async function selectPet(id) {
+            if (!id) return;
+            await flushPendingEdits(true);
+            activePetId = id;
+            refreshUI();
+        }
+
+        function openAddPetModal() {
+            document.getElementById('newPetName').value = '';
+            document.getElementById('newPetSpecies').value = 'Cat';
+            document.getElementById('newPetStatus').value = 'Live';
+            document.getElementById('modalAddPet').classList.remove('hidden');
+        }
+
+        function closeAddPetModal() {
+            document.getElementById('modalAddPet').classList.add('hidden');
+        }
+
+        async function createNewPet() {
+            const name = document.getElementById('newPetName').value.trim();
+            if (!name) {
+                showToast('Please enter a pet name');
+                return;
+            }
+            const species = document.getElementById('newPetSpecies').value;
+            const status = document.getElementById('newPetStatus').value;
+
+            const newPet = sanitizePetRecord({
+                id: 'pet_' + Date.now(),
+                name,
+                species,
+                status
+            });
+
+            pets.push(newPet);
+            activePetId = newPet.id;
+            await persistPets();
+            renderPetDropdown();
+            closeAddPetModal();
+            switchTab('profile');
+            enterProfileEdit();
+            showToast(`Added ${name}!`);
+        }
+
+        function confirmDeletePet() {
+            const pet = getActivePet();
+            if (!pet) return;
+            document.getElementById('deletePetMsg').textContent = `Delete "${pet.name}" and all associated records?`;
+            document.getElementById('modalDeletePet').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('modalDeletePet').classList.add('hidden');
+        }
+
+        async function executeDeletePet() {
+            pets = pets.filter(p => p.id !== activePetId);
+            activePetId = pets.length > 0 ? pets[0].id : null;
+            editState.profile = false;
+            await persistPets();
+            closeDeleteModal();
+            renderPetDropdown();
+            refreshUI();
+            showToast('Pet profile deleted');
+        }
+
+        // ==========================================
+        // TAB 1: PROFILE LOGIC (UNIFIED p* IDs + LIVE SYNC)
+        // ==========================================
+        function syncLiveProfileField(field, value) {
+            const pet = getActivePet();
+            if (!pet) return;
+            const clean = typeof value === 'string' ? value.trim() : value;
+            pet[field] = clean;
+            if (field === 'doa') pet.adoptionDate = clean;
+            if (field === 'fee') pet.adoptionFee = clean;
+            if (field === 'avid') pet.microchip = clean;
+            if (field === 'breedSelect' || field === 'breedCustom') {
+                pet.breed = pet.breedSelect === 'Custom'
+                    ? (pet.breedCustom || 'Custom')
+                    : pet.breedSelect;
+            }
+        }
+
+        function populateProfileFields(pet) {
+            const nameVal = pet.name || 'Unnamed';
+            document.getElementById('pNameDisplay').textContent = nameVal;
+            document.getElementById('pName').value = pet.name || '';
+            document.getElementById('pSpecies').value = pet.species || 'Cat';
+            document.getElementById('pStatus').value = pet.status || 'Live';
+
+            document.getElementById('pBreedSelect').value = pet.breedSelect || 'Munchkin';
+            document.getElementById('pBreedCustom').value = pet.breedCustom || '';
+            const breedText = pet.breedSelect === 'Custom'
+                ? (pet.breedCustom || 'Custom')
+                : (pet.breedSelect || 'Munchkin');
+            document.getElementById('breedViewRow').textContent = breedText;
+            handleBreedChange();
+
+            document.getElementById('pDob').value = pet.dob || '';
+            document.getElementById('pDod').value = pet.dod || '';
+            document.getElementById('pDoa').value = pet.doa || pet.adoptionDate || '';
+            document.getElementById('pFee').value = pet.fee || pet.adoptionFee || '';
+            document.getElementById('pAvid').value = pet.avid || pet.microchip || '';
+
+            syncProfileBadges();
+            handleStatusChange();
+            recalculateAges();
+            applyProfileEditVisuals();
+        }
+
+        function enterProfileEdit() {
+            editState.profile = true;
+            applyProfileEditVisuals();
+        }
+
+        async function saveProfile(silent = false) {
+            const pet = getActivePet();
+            if (!pet) return;
+
+            pet.name = document.getElementById('pName').value.trim() || 'Unnamed';
+            pet.species = document.getElementById('pSpecies').value;
+            pet.status = document.getElementById('pStatus').value;
+            pet.breedSelect = document.getElementById('pBreedSelect').value;
+            pet.breedCustom = document.getElementById('pBreedCustom').value.trim();
+            pet.breed = pet.breedSelect === 'Custom' ? (pet.breedCustom || 'Custom') : pet.breedSelect;
+            pet.dob = document.getElementById('pDob').value.trim();
+            pet.dod = document.getElementById('pDod').value.trim();
+            pet.doa = document.getElementById('pDoa').value.trim();
+            pet.adoptionDate = pet.doa;
+            pet.fee = document.getElementById('pFee').value.trim();
+            pet.adoptionFee = pet.fee;
+            pet.avid = document.getElementById('pAvid').value.trim();
+            pet.microchip = pet.avid;
+
+            document.getElementById('pNameDisplay').textContent = pet.name;
+            document.getElementById('breedViewRow').textContent = pet.breed;
+
+            editState.profile = false;
+            await persistPets();
+            renderPetDropdown();
+            applyProfileEditVisuals();
+            syncProfileBadges();
+            if (!silent) showToast('Profile saved!');
+        }
+
+        function applyProfileEditVisuals() {
+            const editing = editState.profile;
+
+            document.getElementById('btnEditProfile').classList.toggle('hidden', editing);
+            document.getElementById('btnSaveProfile').classList.toggle('hidden', !editing);
+            document.getElementById('btnDeletePet').classList.toggle('hidden', !editing);
+
+            // Switch single NAME row cleanly in-place between View and Edit
+            document.getElementById('nameViewRow').classList.toggle('hidden', editing);
+            document.getElementById('nameEditRow').classList.toggle('hidden', !editing);
+
+            // Switch BREED row cleanly between View text and Edit dropdown/custom input
+            document.getElementById('breedViewRow').classList.toggle('hidden', editing);
+            document.getElementById('breedEditRow').classList.toggle('hidden', !editing);
+
+            const textIds = ['pDob', 'pDod', 'pDoa', 'pFee', 'pAvid'];
+            textIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (editing) {
+                    el.removeAttribute('readonly');
+                    el.classList.add('bg-white', 'px-1.5', 'rounded-md', 'border', 'border-gray-200');
+                } else {
+                    el.setAttribute('readonly', 'true');
+                    el.classList.remove('bg-white', 'px-1.5', 'rounded-md', 'border', 'border-gray-200');
+                }
+            });
+
+            ['pDobPicker', 'pDodPicker', 'pDoaPicker'].forEach(id => {
+                const el = document.getElementById(id);
+                if (editing) el.removeAttribute('disabled');
+                else el.setAttribute('disabled', 'true');
+            });
+        }
+
+        function syncProfileBadges() {
+            const sp = document.getElementById('pSpecies').value;
+            const st = document.getElementById('pStatus').value;
+
+            const badgeSp = document.getElementById('badgeSpecies');
+            const badgeSt = document.getElementById('badgeStatus');
+            const stSelect = document.getElementById('pStatus');
+
+            badgeSp.textContent = sp === 'Dog' ? '🐶 Dog' : '🐱 Cat';
+
+            if (st === 'Deceased') {
+                badgeSt.textContent = '🕊️ Deceased';
+                badgeSt.className = 'inline-flex items-center gap-1 text-[11px] font-medium bg-red-50 text-red-700 px-2.5 py-0.5 rounded-full';
+                stSelect.className = 'text-[11px] font-medium bg-red-50 text-red-700 px-2 py-1 rounded-full ring-1 ring-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
+            } else {
+                badgeSt.textContent = '💚 Live';
+                badgeSt.className = 'inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full';
+                stSelect.className = 'text-[11px] font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full ring-1 ring-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
+            }
+        }
+
+        function handleBreedChange() {
+            const val = document.getElementById('pBreedSelect').value;
+            document.getElementById('pBreedCustom').classList.toggle('hidden', val !== 'Custom');
+        }
+
+        function handleStatusChange() {
+            const st = document.getElementById('pStatus').value;
+            const isDeceased = st === 'Deceased';
+
+            document.getElementById('boxCurrentAge').classList.toggle('hidden', isDeceased);
+            document.getElementById('boxDateOfDeath').classList.toggle('hidden', !isDeceased);
+            document.getElementById('boxAgeAtDeath').classList.toggle('hidden', !isDeceased);
+
+            syncProfileBadges();
+            recalculateAges();
+        }
+
+        function recalculateAges() {
+            const dob = document.getElementById('pDob').value;
+            const dod = document.getElementById('pDod').value;
+            const doa = document.getElementById('pDoa').value;
+
+            document.getElementById('pCurrentAge').textContent = computeDetailedAge(dob);
+            document.getElementById('pAgeAtDeath').textContent = computeDetailedAge(dob, dod);
+            document.getElementById('pAgeAdoption').textContent = computeDetailedAge(dob, doa);
+        }
+
+        // ==========================================
+        // TAB 2: WEIGHT & PROPORTIONAL GROWTH CURVE
+        // ==========================================
+        async function setWeightEditMode(editing, silent = false) {
+            editState.weight = editing;
+            document.getElementById('btnEditWeight').classList.toggle('hidden', editing);
+            document.getElementById('btnSaveWeight').classList.toggle('hidden', !editing);
+            document.getElementById('formAddWeight').classList.toggle('hidden', !editing);
+
+            if (!editing) {
+                await persistPets();
+                if (!silent) showToast('Weight records saved!');
+            }
+            const pet = getActivePet();
+            if (pet) renderWeightTable(pet);
+        }
+
+        async function addWeightEntry(e) {
+            e.preventDefault();
+            const pet = getActivePet();
+            if (!pet) return;
+
+            const dateStr = document.getElementById('inWeightDate').value.trim();
+            const kg = parseFloat(document.getElementById('inWeightKg').value);
+
+            if (!parseDDMMYYYY(dateStr)) {
+                showToast('Enter valid date (dd/mm/yyyy)');
+                return;
+            }
+            if (isNaN(kg) || kg <= 0) {
+                showToast('Enter valid weight in kg');
+                return;
+            }
+
+            pet.weights.push({ id: 'w_' + Date.now(), date: dateStr, weight: kg });
+            sortEntriesChronologically(pet.weights);
+            await persistPets();
+
+            document.getElementById('inWeightDate').value = '';
+            document.getElementById('inWeightKg').value = '';
+
+            renderWeightTable(pet);
+            drawProportionalGrowthCurve();
+            showToast('Weight added & sorted!');
+        }
+
+        async function removeWeightEntry(id) {
+            const pet = getActivePet();
+            if (!pet) return;
+            pet.weights = pet.weights.filter(w => w.id !== id);
+            await persistPets();
+            renderWeightTable(pet);
+            drawProportionalGrowthCurve();
+        }
+
+        function renderWeightTable(pet) {
+            sortEntriesChronologically(pet.weights);
+            const tbody = document.getElementById('weightListBody');
+            tbody.innerHTML = '';
+
+            if (pet.weights.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-gray-400 text-[11px]">No weight records yet</td></tr>`;
+                return;
+            }
+
+            pet.weights.forEach(w => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="py-1.5 px-2.5 font-medium">${w.date}</td>
+                    <td class="py-1.5 px-2.5 font-bold text-blue-600">${Number(w.weight).toFixed(2)} kg</td>
+                    <td class="py-1.5 px-2.5 text-right">
+                        ${editState.weight ? `<button onclick="removeWeightEntry('${w.id}')" class="text-red-500 hover:text-red-700 text-[11px] font-semibold">Delete</button>` : '<span class="text-gray-300">—</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function drawProportionalGrowthCurve() {
+            const canvas = document.getElementById('growthCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const rect = canvas.getBoundingClientRect();
+            if (rect.width === 0) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const W = rect.width;
+            const H = rect.height;
+            ctx.clearRect(0, 0, W, H);
+
+            const pet = getActivePet();
+            if (!pet || pet.weights.length === 0) {
+                ctx.fillStyle = '#9CA3AF';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Tap "Edit" to log weight entries', W / 2, H / 2);
+                return;
+            }
+
+            const sorted = [...pet.weights];
+            sortEntriesChronologically(sorted);
+
+            const pad = { top: 20, right: 24, bottom: 24, left: 34 };
+            const plotW = W - pad.left - pad.right;
+            const plotH = H - pad.top - pad.bottom;
+
+            const times = sorted.map(item => parseDDMMYYYY(item.date).getTime());
+            const tMin = times[0];
+            const tMax = times[times.length - 1];
+
+            const vals = sorted.map(item => Number(item.weight));
+            let wMin = Math.min(...vals);
+            let wMax = Math.max(...vals);
+
+            if (wMin === wMax) {
+                wMin = Math.max(0, wMin - 0.5);
+                wMax += 0.5;
+            } else {
+                const margin = (wMax - wMin) * 0.18;
+                wMin = Math.max(0, wMin - margin);
+                wMax += margin;
+            }
+
+            const xOf = (t) => (tMax === tMin ? pad.left + plotW / 2 : pad.left + ((t - tMin) / (tMax - tMin)) * plotW);
+            const yOf = (val) => pad.top + plotH - ((val - wMin) / (wMax - wMin)) * plotH;
+
+            // Horizontal Gridlines
+            ctx.strokeStyle = '#E5E7EB';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 3; i++) {
+                const v = wMin + ((wMax - wMin) * i) / 3;
+                const y = yOf(v);
+                ctx.beginPath();
+                ctx.moveTo(pad.left, y);
+                ctx.lineTo(W - pad.right, y);
+                ctx.stroke();
+
+                ctx.fillStyle = '#9CA3AF';
+                ctx.font = '9px Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(v.toFixed(1), pad.left - 5, y + 3);
+            }
+
+            // X-Axis Boundary Date Labels
+            ctx.fillStyle = '#6B7280';
+            ctx.font = '9px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(sorted[0].date, pad.left, H - 6);
+            if (sorted.length > 1) {
+                ctx.textAlign = 'right';
+                ctx.fillText(sorted[sorted.length - 1].date, W - pad.right, H - 6);
+            }
+
+            // Gradient Fill Under Curve
+            if (sorted.length > 1) {
+                const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + plotH);
+                grad.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+                grad.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+                ctx.beginPath();
+                ctx.moveTo(xOf(times[0]), yOf(vals[0]));
+                for (let i = 1; i < sorted.length; i++) {
+                    ctx.lineTo(xOf(times[i]), yOf(vals[i]));
+                }
+                ctx.lineTo(xOf(times[times.length - 1]), pad.top + plotH);
+                ctx.lineTo(xOf(times[0]), pad.top + plotH);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+            }
+
+            // Connecting Line
+            ctx.strokeStyle = '#2563EB';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(xOf(times[0]), yOf(vals[0]));
+            for (let i = 1; i < sorted.length; i++) {
+                ctx.lineTo(xOf(times[i]), yOf(vals[i]));
+            }
+            ctx.stroke();
+
+            // Plot Points & Value Labels
+            sorted.forEach((pt, idx) => {
+                const cx = xOf(times[idx]);
+                const cy = yOf(vals[idx]);
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.strokeStyle = '#2563EB';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#111827';
+                ctx.font = 'bold 9px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${vals[idx]}kg`, cx, cy - 7);
+            });
+        }
+
+        // ==========================================
+        // TAB 3: VACCINATION & DEWORMING
+        // ==========================================
+        async function setVaxEditMode(editing, silent = false) {
+            editState.vax = editing;
+            document.getElementById('btnEditVax').classList.toggle('hidden', editing);
+            document.getElementById('btnSaveVax').classList.toggle('hidden', !editing);
+            document.getElementById('formAddVaccine').classList.toggle('hidden', !editing);
+            document.getElementById('formAddDeworm').classList.toggle('hidden', !editing);
+
+            if (!editing) {
+                await persistPets();
+                if (!silent) showToast('Medical logs saved!');
+            }
+            const pet = getActivePet();
+            if (pet) {
+                renderVaccineTable(pet);
+                renderDewormTable(pet);
+            }
+        }
+
+        function toggleFreeText(selectId, inputId) {
+            const sel = document.getElementById(selectId);
+            document.getElementById(inputId).classList.toggle('hidden', sel.value !== 'Custom');
+        }
+
+        async function addVaccineEntry(e) {
+            e.preventDefault();
+            const pet = getActivePet();
+            if (!pet) return;
+
+            const dateStr = document.getElementById('inVaxDate').value.trim();
+            if (!parseDDMMYYYY(dateStr)) {
+                showToast('Enter valid date (dd/mm/yyyy)');
+                return;
+            }
+
+            const vSel = document.getElementById('inVaxNameSelect').value;
+            const vCust = document.getElementById('inVaxNameCustom').value.trim();
+            const vaccineName = vSel === 'Custom' ? vCust : vSel;
+
+            const pSel = document.getElementById('inVaxPlaceSelect').value;
+            const pCust = document.getElementById('inVaxPlaceCustom').value.trim();
+            const placeName = pSel === 'Custom' ? pCust : pSel;
+
+            if (!vaccineName || !placeName) {
+                showToast('Please enter vaccine name and place');
+                return;
+            }
+
+            pet.vaccines.push({ id: 'v_' + Date.now(), date: dateStr, name: vaccineName, place: placeName });
+            sortEntriesChronologically(pet.vaccines);
+            await persistPets();
+
+            document.getElementById('inVaxDate').value = '';
+            document.getElementById('inVaxNameCustom').value = '';
+            document.getElementById('inVaxPlaceCustom').value = '';
+
+            renderVaccineTable(pet);
+            showToast('Vaccination logged!');
+        }
+
+        async function removeVaccineEntry(id) {
+            const pet = getActivePet();
+            if (!pet) return;
+            pet.vaccines = pet.vaccines.filter(v => v.id !== id);
+            await persistPets();
+            renderVaccineTable(pet);
+        }
+
+        function renderVaccineTable(pet) {
+            sortEntriesChronologically(pet.vaccines);
+            const tbody = document.getElementById('vaccineListBody');
+            tbody.innerHTML = '';
+
+            if (pet.vaccines.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-3 text-center text-gray-400 text-[11px]">No vaccination records</td></tr>`;
+                return;
+            }
+
+            pet.vaccines.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="py-1.5 px-2 font-medium">${v.date}</td>
+                    <td class="py-1.5 px-2 font-semibold text-emerald-700">${v.name}</td>
+                    <td class="py-1.5 px-2 text-gray-600">${v.place}</td>
+                    <td class="py-1.5 px-2 text-right">
+                        ${editState.vax ? `<button onclick="removeVaccineEntry('${v.id}')" class="text-red-500 hover:text-red-700 font-semibold">Del</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function addDewormEntry(e) {
+            e.preventDefault();
+            const pet = getActivePet();
+            if (!pet) return;
+
+            const dateStr = document.getElementById('inDewormDate').value.trim();
+            const dewormName = document.getElementById('inDewormName').value.trim();
+
+            if (!parseDDMMYYYY(dateStr)) {
+                showToast('Enter valid date (dd/mm/yyyy)');
+                return;
+            }
+            if (!dewormName) {
+                showToast('Enter deworming medication or note');
+                return;
+            }
+
+            pet.dewormings.push({ id: 'd_' + Date.now(), date: dateStr, name: dewormName });
+            sortEntriesChronologically(pet.dewormings);
+            await persistPets();
+
+            document.getElementById('inDewormDate').value = '';
+            document.getElementById('inDewormName').value = '';
+
+            renderDewormTable(pet);
+            showToast('Deworming logged!');
+        }
+
+        async function removeDewormEntry(id) {
+            const pet = getActivePet();
+            if (!pet) return;
+            pet.dewormings = pet.dewormings.filter(d => d.id !== id);
+            await persistPets();
+            renderDewormTable(pet);
+        }
+
+        function renderDewormTable(pet) {
+            sortEntriesChronologically(pet.dewormings);
+            const tbody = document.getElementById('dewormListBody');
+            tbody.innerHTML = '';
+
+            if (pet.dewormings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-3 text-center text-gray-400 text-[11px]">No deworming records</td></tr>`;
+                return;
+            }
+
+            pet.dewormings.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="py-1.5 px-2 font-medium">${d.date}</td>
+                    <td class="py-1.5 px-2 font-semibold text-amber-700">${d.name}</td>
+                    <td class="py-1.5 px-2 text-right">
+                        ${editState.vax ? `<button onclick="removeDewormEntry('${d.id}')" class="text-red-500 hover:text-red-700 font-semibold">Del</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // GITHUB GIST CLOUD SYNC
+        // ==========================================
+        function updateSyncStatusBadge(state, labelOverride = '') {
+            const dot = document.getElementById('syncDot');
+            const text = document.getElementById('syncBadgeText');
+
+            if (!navigator.onLine && state !== 'syncing') {
+                dot.className = 'w-2 h-2 rounded-full bg-gray-400 flex-shrink-0';
+                text.textContent = '• Offline';
+                return;
+            }
+
+            if (state === 'syncing') {
+                dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping flex-shrink-0';
+                text.textContent = '• Syncing';
+            } else if (state === 'synced') {
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0';
+                text.textContent = '• Synced';
+            } else if (state === 'error') {
+                dot.className = 'w-2 h-2 rounded-full bg-red-500 flex-shrink-0';
+                text.textContent = `• ${labelOverride || 'Error'}`;
+            } else {
+                if (cloudCfg.pat) {
+                    dot.className = 'w-2 h-2 rounded-full bg-blue-500 flex-shrink-0';
+                    text.textContent = cloudCfg.gistId ? '• Ready' : '• Token Set';
+                } else {
+                    dot.className = 'w-2 h-2 rounded-full bg-gray-400 flex-shrink-0';
+                    text.textContent = '• Unconfigured';
+                }
+            }
+        }
+
+        async function pushCloudGist(silent = false) {
+            await flushPendingEdits(true);
+
+            const inputPat = document.getElementById('cfgPat').value.trim();
+            const inputGistId = document.getElementById('cfgGistId').value.trim();
+            if (inputPat) cloudCfg.pat = inputPat;
+            cloudCfg.gistId = inputGistId;
+
+            if (!cloudCfg.pat) {
+                if (!silent) showToast('Enter GitHub PAT first!');
+                return;
+            }
+
+            updateSyncStatusBadge('syncing');
+
+            try {
+                const stored = await idbGet(IDB_PETS_KEY);
+                if (Array.isArray(stored) && stored.length > 0 && pets.length === 0) {
+                    pets = stored.map(sanitizePetRecord);
+                }
+                const cleanPayload = pets.map(sanitizePetRecord);
+                await idbSet(IDB_PETS_KEY, cleanPayload);
+
+                if (!cloudCfg.gistId) {
+                    await createPrivateGist(cleanPayload);
+                } else {
+                    const res = await fetch(`https://api.github.com/gists/${cloudCfg.gistId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Accept': 'application/vnd.github+json',
+                            'Authorization': `Bearer ${cloudCfg.pat}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            description: 'Pet Care Cloud Sync Data',
+                            files: {
+                                'pet_care_data.json': {
+                                    content: JSON.stringify(cleanPayload, null, 2)
+                                }
+                            }
+                        })
+                    });
+
+                    if (!res.ok) {
+                        if (res.status === 404) {
+                            await createPrivateGist(cleanPayload);
+                        } else {
+                            throw new Error(`HTTP ${res.status}`);
+                        }
+                    }
+                }
+
+                cloudCfg.lastSync = Date.now();
+                try {
+                    localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify(cloudCfg));
+                } catch (e) {}
+                updateSyncStatusBadge('synced');
+                if (!silent) showToast(`Pushed ${cleanPayload.length} pet(s) (all profile & health logs)!`);
+            } catch (err) {
+                updateSyncStatusBadge('error', 'Error');
+                if (!silent) showToast(`Push Failed: ${err.message}`);
+            }
+        }
+
+        async function createPrivateGist(payload) {
+            const res = await fetch('https://api.github.com/gists', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/vnd.github+json',
+                    'Authorization': `Bearer ${cloudCfg.pat}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    description: 'Pet Care Cloud Sync Data',
+                    public: false,
+                    files: {
+                        'pet_care_data.json': {
+                            content: JSON.stringify(payload, null, 2)
+                        }
+                    }
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
+            cloudCfg.gistId = data.id;
+            document.getElementById('cfgGistId').value = data.id;
+            try {
+                localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify(cloudCfg));
+            } catch (e) {}
+        }
+
+        async function pullCloudGist() {
+            const inputPat = document.getElementById('cfgPat').value.trim();
+            const inputGistId = document.getElementById('cfgGistId').value.trim();
+            if (inputPat) cloudCfg.pat = inputPat;
+            if (inputGistId) cloudCfg.gistId = inputGistId;
+
+            if (!cloudCfg.pat || !cloudCfg.gistId) {
+                showToast('Both GitHub PAT and Gist ID are required!');
+                return;
+            }
+
+            updateSyncStatusBadge('syncing');
+
+            try {
+                const res = await fetch(`https://api.github.com/gists/${cloudCfg.gistId}`, {
+                    headers: {
+                        'Accept': 'application/vnd.github+json',
+                        'Authorization': `Bearer ${cloudCfg.pat}`
+                    },
+                    cache: 'no-store'
+                });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+
+                const gist = await res.json();
+                const filesMap = gist.files || {};
+                const fileObj = filesMap['pet_care_data.json'] ||
+                    Object.values(filesMap).find(f => f && f.filename && f.filename.endsWith('.json'));
+
+                if (!fileObj) {
+                    throw new Error('pet_care_data.json not found in Gist');
+                }
+
+                let jsonText = fileObj.content;
+                if (fileObj.truncated && fileObj.raw_url) {
+                    const rawRes = await fetch(fileObj.raw_url, {
+                        headers: {
+                            'Authorization': `Bearer ${cloudCfg.pat}`
+                        },
+                        cache: 'no-store'
+                    });
+                    if (!rawRes.ok) throw new Error(`Raw fetch HTTP ${rawRes.status}`);
+                    jsonText = await rawRes.text();
+                }
+
+                const parsed = JSON.parse(jsonText);
+                const pulledPets = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.pets) ? parsed.pets : null);
+                if (!pulledPets) {
+                    throw new Error('Invalid JSON format in Gist');
+                }
+
+                editState.profile = false;
+                editState.weight = false;
+                editState.vax = false;
+
+                pets = pulledPets.map(sanitizePetRecord);
+                const keepSamePet = pets.find(p => p.id === activePetId);
+                activePetId = keepSamePet ? keepSamePet.id : (pets.length > 0 ? pets[0].id : null);
+
+                await idbSet(IDB_PETS_KEY, pets);
+                updateStorageUsageDisplay();
+
+                cloudCfg.lastSync = Date.now();
+                try {
+                    localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify(cloudCfg));
+                } catch (e) {}
+
+                renderPetDropdown();
+                if (activePetId) {
+                    populateProfileFields(getActivePet());
+                }
+                refreshUI();
+                updateSyncStatusBadge('synced');
+                showToast(`Pulled ${pets.length} pet(s) (all profile & health logs)!`);
+            } catch (err) {
+                updateSyncStatusBadge('error', 'Error');
+                showToast(`Pull Failed: ${err.message}`);
+            }
+        }
+
+        // ==========================================
+        // LOCAL JSON EXPORT & IMPORT (MOBILE SAFE)
+        // ==========================================
+        async function exportJsonFile() {
+            try {
+                const jsonString = JSON.stringify(pets.map(sanitizePetRecord), null, 2);
+                const dateStamp = new Date().toISOString().slice(0, 10);
+                const fileName = `pet_care_backup_${dateStamp}.json`;
+                const blob = new Blob([jsonString], { type: 'application/json' });
+
+                if (navigator.canShare && navigator.share) {
+                    const file = new File([blob], fileName, { type: 'application/json' });
+                    if (navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({ files: [file], title: 'Pet Care Backup' });
+                            showToast('JSON exported!');
+                            return;
+                        } catch (shareErr) {
+                            if (shareErr.name === 'AbortError') return;
+                        }
+                    }
+                }
+
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 1000);
+
+                showToast('Exported JSON backup!');
+            } catch (err) {
+                showToast('Export error: ' + err.message);
+            }
+        }
+
+        function triggerImportJson() {
+            const inp = document.getElementById('jsonImportInput');
+            inp.value = '';
+            inp.click();
+        }
+
+        function handleImportJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    const importedPets = Array.isArray(imported) ? imported : (imported && Array.isArray(imported.pets) ? imported.pets : null);
+                    if (!importedPets) {
+                        showToast('Invalid JSON backup file');
+                        return;
+                    }
+                    editState.profile = false;
+                    editState.weight = false;
+                    editState.vax = false;
+                    pets = importedPets.map(sanitizePetRecord);
+                    activePetId = pets.length > 0 ? pets[0].id : null;
+                    await persistPets();
+                    renderPetDropdown();
+                    closeSyncPanel();
+                    showToast(`Imported ${pets.length} pet(s)!`);
+                } catch (err) {
+                    showToast('Could not parse JSON file');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==========================================
+        // SHARE ALL PETS SUMMARY
+        // ==========================================
+        function generateAllPetsReport() {
+            if (pets.length === 0) return 'No pets recorded.';
+
+            let out = `🐾 PET CARE SUMMARY 🐾\n====================\n\n`;
+
+            pets.forEach((p, idx) => {
+                const breed = p.breedSelect === 'Custom' ? (p.breedCustom || 'Custom') : p.breedSelect;
+                const spIcon = p.species === 'Dog' ? '🐶' : '🐱';
+                out += `${idx + 1}. ${p.name} (${spIcon} ${p.species})\n`;
+                out += `• Breed: ${breed}\n`;
+                out += `• Status: ${p.status}\n`;
+                out += `• DOB: ${p.dob || 'N/A'}\n`;
+
+                if (p.status === 'Deceased') {
+                    out += `• Date of Death: ${p.dod || 'N/A'}\n`;
+                    out += `• Age at Death: ${computeDetailedAge(p.dob, p.dod)}\n`;
+                } else {
+                    out += `• Current Age: ${computeDetailedAge(p.dob)}\n`;
+                }
+
+                out += `• Adoption Date: ${p.doa || 'N/A'} (Age at Adoption: ${computeDetailedAge(p.dob, p.doa)})\n`;
+                out += `• Adoption Fee (HKD): ${p.fee ? '$' + p.fee : 'N/A'}\n`;
+                out += `• AVID / Microchip: ${p.avid || p.microchip || 'N/A'}\n`;
+
+                if (p.weights && p.weights.length > 0) {
+                    sortEntriesChronologically(p.weights);
+                    out += `• Weight History (kg):\n`;
+                    p.weights.forEach(w => {
+                        out += `  - ${w.date}: ${Number(w.weight).toFixed(2)} kg\n`;
+                    });
+                }
+
+                if (p.vaccines && p.vaccines.length > 0) {
+                    sortEntriesChronologically(p.vaccines);
+                    out += `• Vaccinations:\n`;
+                    p.vaccines.forEach(v => {
+                        out += `  - ${v.date}: ${v.name} (${v.place})\n`;
+                    });
+                }
+
+                if (p.dewormings && p.dewormings.length > 0) {
+                    sortEntriesChronologically(p.dewormings);
+                    out += `• Deworming:\n`;
+                    p.dewormings.forEach(d => {
+                        out += `  - ${d.date}: ${d.name}\n`;
+                    });
+                }
+
+                out += `\n--------------------\n`;
+            });
+
+            return out;
+        }
+
+        function openShareModal() {
+            if (pets.length === 0) {
+                showToast('Add at least one pet first');
+                return;
+            }
+            document.getElementById('modalShare').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('modalShare').classList.add('hidden');
+        }
+
+        function shareWhatsApp() {
+            const msg = encodeURIComponent(generateAllPetsReport());
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+            closeShareModal();
+        }
+
+        function shareEmail() {
+            const subj = encodeURIComponent('Pet Care Complete Records');
+            const body = encodeURIComponent(generateAllPetsReport());
+            window.location.href = `mailto:?subject=${subj}&body=${body}`;
+            closeShareModal();
+        }
+
+        function copySummaryClipboard() {
+            const text = generateAllPetsReport();
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            closeShareModal();
+            showToast('All pets data copied to clipboard!');
+        }
+
+        // ==========================================
+        // TOAST HELPER
+        // ==========================================
+        let toastTimer = null;
+        function showToast(msg) {
+            const el = document.getElementById('toastBanner');
+            el.textContent = msg;
+            el.classList.remove('opacity-0');
+            el.classList.add('opacity-100');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.classList.remove('opacity-100');
+                el.classList.add('opacity-0');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
